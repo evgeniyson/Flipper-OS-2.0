@@ -44,8 +44,19 @@ void shutdown_request_and_reset(void) {
     }
 }
 
-/* Deepest sleep of the MCU; BACK (PC13, wake-up pin 2, active low) restarts it. */
+/* Deepest sleep of the MCU; BACK (PC13, wake-up pin 2, active low) restarts it.
+ * Should the chip refuse shutdown mode (the radio core has a say in that) and
+ * only fall into a lighter sleep, the same key press arrives as an EXTI event
+ * and we restart ourselves - either way BACK turns the device back on. */
 static void shutdown_enter(void) {
+    RCC->AHB2ENR |= RCC_AHB2ENR_GPIOCEN;
+    (void)RCC->AHB2ENR;
+    GPIOC->PUPDR = (GPIOC->PUPDR & ~(3u << 26)) | (1u << 26);
+    GPIOC->MODER &= ~(3u << 26);
+    SYSCFG->EXTICR[3] = (SYSCFG->EXTICR[3] & ~(7u << 4)) | (2u << 4); /* line 13 = port C */
+    EXTI->FTSR1 |= 1u << 13;
+    EXTI->EMR1 |= 1u << 13;
+
     PWR->PUCRC |= PWR_PUCRC_PC13;
     PWR->PDCRA |= PWR_PDCRA_PA8; /* keep the vibration motor, speaker and IR LED off */
     PWR->PDCRB |= PWR_PDCRB_PB8 | PWR_PDCRB_PB9;
@@ -56,7 +67,19 @@ static void shutdown_enter(void) {
     PWR->CR1 = (PWR->CR1 & ~PWR_CR1_LPMS) | PWR_CR1_LPMS_2;
     PWR->C2CR1 = (PWR->C2CR1 & ~PWR_C2CR1_LPMS) | PWR_C2CR1_LPMS_2;
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-    for(;;) __WFI();
+
+    /* wait for the key to be released first, so that the press that chose
+     * "Power off" does not wake us straight away */
+    for(volatile int i = 0; i < 200000; i++) {
+    }
+    __SEV();
+    __WFE(); /* clears the event latch */
+    do {
+        __WFE();
+    } while(GPIOC->IDR & (1u << 13));
+    NVIC_SystemReset();
+    for(;;) {
+    }
 }
 
 void Reset_Handler(void) {

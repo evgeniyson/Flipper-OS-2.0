@@ -251,21 +251,21 @@ static void file_draw(void) {
     }
     ui_format_freq(f, sizeof(f), info.frequency);
     fmt_snprintf(line, sizeof(line), "%s MHz  %s  %s", f, file_preset()->name, info.is_raw ? "RAW" : "key");
-    cv_text(2, 17, &font_small, line);
+    cv_text(2, 18, &font_small, line);
     if(info.is_raw) {
         fmt_snprintf(line, sizeof(line), "%lu pulses %d pkts %d decoded", (unsigned long)info.pulse_count,
                      total_pkts, n_decoded);
-        cv_text(2, 23, &font_small, line);
+        cv_text(2, 24, &font_small, line);
         if(n_decoded) {
             fmt_snprintf(line, sizeof(line), "%s %ubit %lX", first_decoded.proto->name, first_decoded.bits,
                          (unsigned long)first_decoded.data);
-            cv_text(2, 29, &font_small, line);
+            cv_text(2, 30, &font_small, line);
         }
     } else {
         fmt_snprintf(line, sizeof(line), "%s %ubit", info.protocol, info.bits);
-        cv_text(2, 23, &font_small, line);
+        cv_text(2, 24, &font_small, line);
         fmt_snprintf(line, sizeof(line), "Key %lX  TE %lu", (unsigned long)info.key, (unsigned long)info.te);
-        cv_text(2, 29, &font_small, line);
+        cv_text(2, 30, &font_small, line);
     }
     ui_list_draw(&act_list, 37, 3, act_row, NULL);
 }
