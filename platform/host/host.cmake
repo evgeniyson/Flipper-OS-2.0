@@ -2,7 +2,7 @@
 add_compile_options(-g -fsanitize=address,undefined -fno-omit-frame-pointer)
 add_link_options(-fsanitize=address,undefined)
 
-add_library(fos_portable STATIC ${FOS_PORTABLE})
+add_library(fos_portable STATIC ${FOS_PORTABLE} drivers/cc1101.c)
 target_include_directories(fos_portable PUBLIC ${CMAKE_SOURCE_DIR})
 
 # The firmware's own screens and logic, linked against simulated hardware.
@@ -32,7 +32,7 @@ add_executable(sublab tools/sublab.c)
 target_link_libraries(sublab fos_portable)
 
 enable_testing()
-foreach(t test_core test_subghz test_vectors)
+foreach(t test_core test_subghz test_cc1101 test_vectors)
     add_executable(${t} tests/${t}.c)
     target_link_libraries(${t} fos_portable)
     add_test(NAME ${t} COMMAND ${t} ${CMAKE_SOURCE_DIR}/tests/vectors)

@@ -92,7 +92,15 @@ static void draw(void) {
 
 void ui_step(void) {
     uint32_t now = hal_millis();
-    input_update(hal_keys(), now);
+    uint8_t keys = hal_keys();
+    /* LEFT + BACK held: restart. Keep LEFT down afterwards to enter DFU. */
+    static uint32_t combo_since;
+    const uint8_t combo = (1u << KEY_LEFT) | (1u << KEY_BACK);
+    if((keys & combo) != combo)
+        combo_since = now;
+    else if(now - combo_since >= 1500)
+        hal_reboot();
+    input_update(keys, now);
     InputEvent ev;
     while(input_pop(&ev)) {
         last_input = now;
