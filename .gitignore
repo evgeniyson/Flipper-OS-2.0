@@ -1,0 +1,5 @@
+build/
+tests/vectors/
+*.pyc
+__pycache__/
+/sim_out/
